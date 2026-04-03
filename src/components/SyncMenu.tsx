@@ -1,5 +1,5 @@
 import { FontAwesome } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { t } from '../i18n';
 import { syncPull, syncPush } from '../services/storage';

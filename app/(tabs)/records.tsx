@@ -1,15 +1,15 @@
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { colors } from '../../src/theme/colors';
-import { globalStyles } from '../../src/theme/styles';
-import { Swimmer, Meet, Stroke, Distance, loadData, loadMeets, Performance, saveData, removePerformance, updatePerformance } from '../../src/services/storage';
-import { formatTimeMS } from '../../src/services/timeUtils';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, FlatList, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { VictoryAxis, VictoryChart, VictoryLine, VictoryScatter } from 'victory-native';
+import AppBackground from '../../src/components/AppBackground';
 import { t } from '../../src/i18n';
 import { dateToUI } from '../../src/services/dateUtils';
-import AppBackground from '../../src/components/AppBackground';
-import { VictoryChart, VictoryLine, VictoryAxis, VictoryScatter, VictoryTheme, VictoryLabel } from 'victory-native';
+import { Distance, loadData, loadMeets, Meet, Performance, removePerformance, saveData, Stroke, Swimmer, updatePerformance } from '../../src/services/storage';
+import { formatTimeMS } from '../../src/services/timeUtils';
+import { colors } from '../../src/theme/colors';
+import { globalStyles } from '../../src/theme/styles';
 
 const ALL_STROKES: Stroke[] = ['freestyle', 'backstroke', 'breaststroke', 'butterfly', 'medley'];
 const ALL_DISTANCES: Distance[] = [50, 100, 200, 400, 800, 1500];
@@ -25,10 +25,10 @@ export default function RecordsScreen() {
   const { swimmerId } = useLocalSearchParams<{ swimmerId: string }>();
 
   const [mode, setMode] = useState<ViewMode>('history');
-  
+
   const [filterDistance, setFilterDistance] = useState<FilterDistance>('all');
   const [filterStroke, setFilterStroke] = useState<FilterStroke>('all');
-  
+
   const [compareDistance, setCompareDistance] = useState<Distance>(100);
   const [isChartVisible, setIsChartVisible] = useState(false);
 
@@ -78,7 +78,7 @@ export default function RecordsScreen() {
     const [swimmersData, meetsData] = await Promise.all([loadData(), loadMeets()]);
     setSwimmers(swimmersData);
     setMeets(meetsData);
-    
+
     // Initial default selection only if nothing is selected yet
     if (swimmersData.length > 0 && !selectedSwimmerId && !swimmerId) {
       setSelectedSwimmerId(swimmersData[0].id);
@@ -98,9 +98,9 @@ export default function RecordsScreen() {
     }, [fetchData])
   );
 
-  const selectedSwimmer = useMemo(() => 
-    swimmers.find(s => s.id === selectedSwimmerId), 
-  [swimmers, selectedSwimmerId]);
+  const selectedSwimmer = useMemo(() =>
+    swimmers.find(s => s.id === selectedSwimmerId),
+    [swimmers, selectedSwimmerId]);
 
   const getPerformanceDate = useCallback((p: Performance) => {
     const meet = meets.find(m => m.id === p.meetId);
@@ -109,7 +109,7 @@ export default function RecordsScreen() {
 
   const filteredPerformances = useMemo(() => {
     if (!selectedSwimmer || mode !== 'history') return [];
-    
+
     let perfs = selectedSwimmer.performances.filter(p => {
       let passDist = filterDistance === 'all' ? true : p.distance === filterDistance;
       let passStroke = filterStroke === 'all' ? true : p.stroke === filterStroke;
@@ -119,7 +119,7 @@ export default function RecordsScreen() {
     perfs.sort((a, b) => {
       const dA = getPerformanceDate(a);
       const dB = getPerformanceDate(b);
-      return dB.localeCompare(dA); 
+      return dB.localeCompare(dA);
     });
 
     return perfs;
@@ -134,7 +134,7 @@ export default function RecordsScreen() {
 
   const chartData = useMemo(() => {
     if (!selectedSwimmer || filterStroke === 'all' || filterDistance === 'all') return [];
-    
+
     // We need at least 2 points to make a line
     const data = [...filteredPerformances]
       .reverse() // Oldest first for the chart
@@ -142,7 +142,7 @@ export default function RecordsScreen() {
         x: new Date(getPerformanceDate(p)).getTime(),
         y: p.timeMs
       }));
-    
+
     return data;
   }, [filteredPerformances, filterStroke, filterDistance, getPerformanceDate, selectedSwimmer]);
 
@@ -170,7 +170,7 @@ export default function RecordsScreen() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16, flexGrow: 0 }}>
         <View style={{ flexDirection: 'row', gap: 10 }}>
           {swimmers.map(item => (
-            <TouchableOpacity 
+            <TouchableOpacity
               key={item.id}
               style={[globalStyles.button, item.id !== selectedSwimmerId && globalStyles['button--secondary'], globalStyles['button--md']]}
               onPress={() => setSelectedSwimmerId(item.id)}
@@ -232,7 +232,7 @@ export default function RecordsScreen() {
       {/* Progression Chart */}
       {mode === 'history' && filterStroke !== 'all' && filterDistance !== 'all' && (
         <View style={[globalStyles.card, { marginTop: 16, padding: 8 }]}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4 }}
             onPress={() => setIsChartVisible(!isChartVisible)}
             activeOpacity={0.7}
@@ -294,9 +294,9 @@ export default function RecordsScreen() {
                 </VictoryChart>
               ) : (
                 <View style={{ padding: 20, alignItems: 'center' }}>
-                   <Text style={[globalStyles.text__caption, { textAlign: 'center' }]}>
-                     {chartData.length === 1 ? t('records.chartEmpty' as any) : t('records.noData' as any)}
-                   </Text>
+                  <Text style={[globalStyles.text__caption, { textAlign: 'center' }]}>
+                    {chartData.length === 1 ? t('records.chartEmpty' as any) : t('records.noData' as any)}
+                  </Text>
                 </View>
               )}
             </View>
@@ -349,15 +349,15 @@ export default function RecordsScreen() {
             let deltaStr = null;
             let deltaColor = colors.textSecondary;
             if (previousPerf) {
-               const diffMs = item.timeMs - previousPerf.timeMs;
-               if (diffMs !== 0) {
-                 const sign = diffMs < 0 ? '-' : '+';
-                 const absDiff = Math.abs(diffMs);
-                 const sec = Math.floor(absDiff / 1000);
-                 const cc = Math.floor((absDiff % 1000) / 10);
-                 deltaStr = `${sign}${sec}.${cc.toString().padStart(2, '0')}`;
-                 deltaColor = diffMs < 0 ? '#4CAF50' : '#F44336';
-               }
+              const diffMs = item.timeMs - previousPerf.timeMs;
+              if (diffMs !== 0) {
+                const sign = diffMs < 0 ? '-' : '+';
+                const absDiff = Math.abs(diffMs);
+                const sec = Math.floor(absDiff / 1000);
+                const cc = Math.floor((absDiff % 1000) / 10);
+                deltaStr = `${sign}${sec}.${cc.toString().padStart(2, '0')}`;
+                deltaColor = diffMs < 0 ? '#4CAF50' : '#F44336';
+              }
             }
 
             return (
@@ -425,10 +425,10 @@ export default function RecordsScreen() {
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                           {isPB && <FontAwesome name="trophy" size={16} color={colors.gold} />}
-                           <Text style={[globalStyles.card__title, { marginBottom: 0, color: isPB ? colors.gold : colors.primary }]}>
-                             {item.distance}m {t(`strokesShort.${item.stroke}` as any)}
-                           </Text>
+                          {isPB && <FontAwesome name="trophy" size={16} color={colors.gold} />}
+                          <Text style={[globalStyles.card__title, { marginBottom: 0, color: isPB ? colors.gold : colors.primary }]}>
+                            {item.distance}m {t(`strokesShort.${item.stroke}` as any)}
+                          </Text>
                         </View>
                         <Text style={[globalStyles.text__body, { fontSize: 14 }]} numberOfLines={1}>
                           {meetName} - {dateStr}
@@ -438,15 +438,15 @@ export default function RecordsScreen() {
                         </Text>
                       </View>
                       <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
-                         <Text style={[globalStyles.text__heading2, { marginBottom: 0, color: isPB ? colors.gold : colors.textPrimary }]}>
-                            {formatTimeMS(item.timeMs)}
-                         </Text>
-                         {deltaStr && (
-                           <Text style={{ color: deltaColor, fontSize: 12, fontWeight: 'bold', marginTop: 2 }}>
-                             {deltaStr}
-                           </Text>
-                         )}
-                         {isPB && !deltaStr && <Text style={{ color: colors.gold, fontSize: 10, fontWeight: 'bold' }}>{t('records.pbHighlight')}</Text>}
+                        <Text style={[globalStyles.text__heading2, { marginBottom: 0, color: isPB ? colors.gold : colors.textPrimary }]}>
+                          {formatTimeMS(item.timeMs)}
+                        </Text>
+                        {deltaStr && (
+                          <Text style={{ color: deltaColor, fontSize: 12, fontWeight: 'bold', marginTop: 2 }}>
+                            {deltaStr}
+                          </Text>
+                        )}
+                        {isPB && !deltaStr && <Text style={{ color: colors.gold, fontSize: 10, fontWeight: 'bold' }}>{t('records.pbHighlight')}</Text>}
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -464,35 +464,35 @@ export default function RecordsScreen() {
           keyExtractor={item => item}
           renderItem={({ item: stroke }) => {
             const bestPerf = getPB(stroke, compareDistance);
-            
+
             return (
               <View style={[globalStyles.card, globalStyles['card--data'], bestPerf && { borderColor: colors.gold, borderWidth: 1 }]}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                     {bestPerf && <FontAwesome name="trophy" size={16} color={colors.gold} />}
-                     <Text style={[globalStyles.card__title, { marginBottom: 0, color: bestPerf ? colors.gold : colors.primary }]}>
-                       {t(`strokesShort.${stroke}` as any)}
-                     </Text>
-                   </View>
-                   
-                   {bestPerf ? (
-                     <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={[globalStyles.text__heading2, { marginBottom: 4, color: colors.gold }]}>
-                          {formatTimeMS(bestPerf.timeMs)}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    {bestPerf && <FontAwesome name="trophy" size={16} color={colors.gold} />}
+                    <Text style={[globalStyles.card__title, { marginBottom: 0, color: bestPerf ? colors.gold : colors.primary }]}>
+                      {t(`strokesShort.${stroke}` as any)}
+                    </Text>
+                  </View>
+
+                  {bestPerf ? (
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={[globalStyles.text__heading2, { marginBottom: 4, color: colors.gold }]}>
+                        {formatTimeMS(bestPerf.timeMs)}
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <FontAwesome name="calendar" size={10} color={colors.textSecondary} />
+                        <Text style={[globalStyles.text__caption, { fontSize: 12 }]}>
+                          {dateToUI(getPerformanceDate(bestPerf))}
                         </Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <FontAwesome name="calendar" size={10} color={colors.textSecondary} />
-                          <Text style={[globalStyles.text__caption, { fontSize: 12 }]}>
-                            {dateToUI(getPerformanceDate(bestPerf))}
-                          </Text>
-                        </View>
-                     </View>
-                   ) : (
-                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <FontAwesome name="times-circle" size={14} color={colors.border} />
-                        <Text style={[globalStyles.text__caption, { fontStyle: 'italic' }]}>{t('records.noData')}</Text>
-                     </View>
-                   )}
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <FontAwesome name="times-circle" size={14} color={colors.border} />
+                      <Text style={[globalStyles.text__caption, { fontStyle: 'italic' }]}>{t('records.noData')}</Text>
+                    </View>
+                  )}
                 </View>
               </View>
             );
