@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { colors } from '../src/theme/colors';
-import { globalStyles } from '../src/theme/styles';
-import { Swimmer, Meet, Stroke, Distance, PoolLength, loadData, saveData, addPerformance, loadMeets } from '../src/services/storage';
-import { FontAwesome } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import AppBackground from '../src/components/AppBackground';
 import { t } from '../src/i18n';
-import { dateToISO, dateToUI } from '../src/services/dateUtils';
+import { dateToUI } from '../src/services/dateUtils';
+import { Distance, Meet, PoolLength, Stroke, Swimmer, addPerformance, loadData, loadMeets, saveData } from '../src/services/storage';
+import { colors } from '../src/theme/colors';
+import { globalStyles } from '../src/theme/styles';
 
 const ALL_STROKES: Stroke[] = ['freestyle', 'backstroke', 'breaststroke', 'butterfly', 'medley'];
 const ALL_DISTANCES: Distance[] = [50, 100, 200, 400, 800, 1500];
@@ -42,10 +41,10 @@ export default function AddTimeModal() {
     Promise.all([loadData(), loadMeets()]).then(([swimmersData, meetsData]) => {
       const s = swimmersData.find(x => x.id === swimmerId);
       if (s) setSwimmer(s);
-      
+
       meetsData.sort((a, b) => b.startDate.localeCompare(a.startDate));
       setMeets(meetsData);
-      
+
       // Auto-select the most recent meet
       if (meetsData.length > 0 && !selectedMeetId) {
         setSelectedMeetId(meetsData[0].id);
@@ -55,7 +54,7 @@ export default function AddTimeModal() {
 
   const handleSave = async () => {
     if (!selectedMeetId) return Alert.alert(t('common.error'), t('addTime.errorMeetSelect'));
-    
+
     const m = parseInt(minutes || '0', 10);
     const s = parseInt(seconds || '0', 10);
     const h = parseInt(hundredths || '0', 10);
@@ -72,7 +71,7 @@ export default function AddTimeModal() {
       poolLength,
       timeMs: ms
     });
-    
+
     await saveData(updated);
     router.back();
   };
@@ -127,9 +126,9 @@ export default function AddTimeModal() {
             ))}
           </Picker>
         )}
-      
-      <Text style={[globalStyles.text__body, { marginBottom: 8 }]}>{t('addTime.timeFormat')}</Text>
-      <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+
+        <Text style={[globalStyles.text__body, { marginBottom: 8 }]}>{t('addTime.timeFormat')}</Text>
+        <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
           <TextInput
             ref={minRef}
             style={[globalStyles.input, { width: 60, textAlign: 'center', marginBottom: 0 }]}
@@ -162,57 +161,57 @@ export default function AddTimeModal() {
             value={hundredths}
             onChangeText={onChangeHundredths}
           />
-      </View>
+        </View>
 
-      <Text style={[globalStyles.text__body, { marginBottom: 8 }]}>{t('addTime.stroke')}</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
-        {ALL_STROKES.map(s => (
-          <TouchableOpacity 
-            key={s} 
-            style={[globalStyles.button, stroke !== s && globalStyles['button--secondary'], globalStyles['button--sm'], { paddingHorizontal: 9 }]}
-            onPress={() => setStroke(s)}
-          >
-            <Text style={[globalStyles.button__text, stroke !== s && globalStyles['button__text--secondary']]}>
-              {t(`strokesShort.${s}` as any)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <Text style={[globalStyles.text__body, { marginBottom: 8 }]}>{t('addTime.stroke')}</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+          {ALL_STROKES.map(s => (
+            <TouchableOpacity
+              key={s}
+              style={[globalStyles.button, stroke !== s && globalStyles['button--secondary'], globalStyles['button--sm'], { paddingHorizontal: 9 }]}
+              onPress={() => setStroke(s)}
+            >
+              <Text style={[globalStyles.button__text, stroke !== s && globalStyles['button__text--secondary']]}>
+                {t(`strokesShort.${s}` as any)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <Text style={[globalStyles.text__body, { marginBottom: 8 }]}>{t('addTime.distance')}</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
-        {ALL_DISTANCES.map(d => (
-          <TouchableOpacity 
-            key={d} 
-            style={[globalStyles.button, distance !== d && globalStyles['button--secondary'], globalStyles['button--sm']]}
-            onPress={() => setDistance(d)}
-          >
-            <Text style={[globalStyles.button__text, distance !== d && globalStyles['button__text--secondary']]}>{d}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <Text style={[globalStyles.text__body, { marginBottom: 8 }]}>{t('addTime.distance')}</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+          {ALL_DISTANCES.map(d => (
+            <TouchableOpacity
+              key={d}
+              style={[globalStyles.button, distance !== d && globalStyles['button--secondary'], globalStyles['button--sm']]}
+              onPress={() => setDistance(d)}
+            >
+              <Text style={[globalStyles.button__text, distance !== d && globalStyles['button__text--secondary']]}>{d}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <Text style={[globalStyles.text__body, { marginBottom: 8 }]}>{t('addTime.poolLength')}</Text>
-      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 30 }}>
-        {[25, 50].map(p => (
-          <TouchableOpacity 
-            key={p} 
-            style={[globalStyles.button, poolLength !== p && globalStyles['button--secondary'], globalStyles['button--md']]}
-            onPress={() => setPoolLength(p as PoolLength)}
-          >
-            <Text style={[globalStyles.button__text, poolLength !== p && globalStyles['button__text--secondary']]}>{p}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        <Text style={[globalStyles.text__body, { marginBottom: 8 }]}>{t('addTime.poolLength')}</Text>
+        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 30 }}>
+          {[25, 50].map(p => (
+            <TouchableOpacity
+              key={p}
+              style={[globalStyles.button, poolLength !== p && globalStyles['button--secondary'], globalStyles['button--md']]}
+              onPress={() => setPoolLength(p as PoolLength)}
+            >
+              <Text style={[globalStyles.button__text, poolLength !== p && globalStyles['button__text--secondary']]}>{p}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <TouchableOpacity 
-         style={[globalStyles.button, !hasTime && { opacity: 0.5 }]} 
-         onPress={handleSave}
-         disabled={!hasTime}
-      >
-        <Text style={globalStyles.button__text}>{t('common.save')}</Text>
-      </TouchableOpacity>
-      <View style={{ height: 40 }} />
+        <TouchableOpacity
+          style={[globalStyles.button, !hasTime && { opacity: 0.5 }]}
+          onPress={handleSave}
+          disabled={!hasTime}
+        >
+          <Text style={globalStyles.button__text}>{t('common.save')}</Text>
+        </TouchableOpacity>
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
